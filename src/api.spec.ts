@@ -296,6 +296,7 @@ describe("API", () => {
           "listJobsForWorkflowRun",
         ).mockReturnValue(
           Promise.resolve({
+            headers: {},
             data: {
               total_count: 0,
               jobs: [],
