@@ -76,7 +76,13 @@ export async function fetchWorkflowRunState(
 interface WorkflowRunJob {
   id: number;
   name: string;
-  status: "queued" | "in_progress" | "completed" | "waiting";
+  status:
+    | "requested"
+    | "queued"
+    | "pending"
+    | "in_progress"
+    | "completed"
+    | "waiting";
   conclusion: string | null;
   steps: WorkflowRunJobStep[];
   url: string | null;

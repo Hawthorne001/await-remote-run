@@ -91,7 +91,7 @@ describe("Action", () => {
       mockEnvConfig.run_timeout_seconds = "invalid value";
 
       // Behaviour
-      expect(() => getConfig()).toThrowError(
+      expect(() => getConfig()).toThrow(
         "Unable to parse value: invalid value",
       );
 
@@ -103,7 +103,7 @@ describe("Action", () => {
       mockEnvConfig.run_id = "";
 
       // Behaviour
-      expect(() => getConfig()).toThrowError("Run ID must be provided");
+      expect(() => getConfig()).toThrow("Run ID must be provided");
 
       // Logging
       assertNoneCalled();

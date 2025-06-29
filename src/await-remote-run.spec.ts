@@ -420,7 +420,7 @@ describe("await-remote-run", () => {
       });
 
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toBeCalledTimes(2);
+      expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
       expect(coreDebugLogMock.mock.calls).toMatchSnapshot();
     });
 

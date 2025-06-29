@@ -123,7 +123,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunState(0)).rejects.toThrowError(
+      await expect(fetchWorkflowRunState(0)).rejects.toThrow(
         `Failed to fetch Workflow Run state, expected 200 but received ${errorStatus}`,
       );
 
@@ -331,7 +331,7 @@ describe("API", () => {
         );
 
         // Behaviour
-        await expect(fetchWorkflowRunFailedJobs(0)).rejects.toThrowError(
+        await expect(fetchWorkflowRunFailedJobs(0)).rejects.toThrow(
           `Failed to fetch Jobs for Workflow Run, expected 200 but received ${errorStatus}`,
         );
 
@@ -455,7 +455,7 @@ describe("API", () => {
         );
 
         // Behaviour
-        await expect(fetchWorkflowRunActiveJobUrl(0)).rejects.toThrowError(
+        await expect(fetchWorkflowRunActiveJobUrl(0)).rejects.toThrow(
           `Failed to fetch Jobs for Workflow Run, expected 200 but received ${errorStatus}`,
         );
 
@@ -733,7 +733,7 @@ describe("API", () => {
       expect(coreWarningLogMock).toHaveBeenCalledOnce();
       expect(coreWarningLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
         "retryOnError: An unexpected error has occurred:
-          name: spy
+          name: Mock
           error: some error"
       `);
       expect(coreWarningLogMock.mock.calls[0]?.[0]).toContain(testFunc.name);
