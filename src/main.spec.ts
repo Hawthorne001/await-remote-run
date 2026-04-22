@@ -151,9 +151,9 @@ describe("main", () => {
   });
 
   it("should fail if the active job URL cannot be fetched", async () => {
-    apiFetchWorkflowRunActiveJobUrlRetry.mockResolvedValue({
-      success: false,
-      reason: "timeout",
+    apiFetchWorkflowRunActiveJobUrlRetry.mockImplementation(() => {
+      vi.setSystemTime(Date.now() + 500);
+      return Promise.resolve({ success: false, reason: "timeout" });
     });
 
     await main();
@@ -170,7 +170,7 @@ describe("main", () => {
     expect(coreSetFailedMock).not.toHaveBeenCalled();
     expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
     expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
-      "Timeout exceeded while attempting to find the active job run URL (0ms)",
+      "Timeout exceeded while attempting to find the active job run URL (500ms)",
       testCfg.runId,
     );
 
@@ -183,9 +183,9 @@ describe("main", () => {
       success: true,
       value: "test-url",
     });
-    awaitRemoteRunGetWorkflowRunResult.mockResolvedValue({
-      success: false,
-      reason: "timeout",
+    awaitRemoteRunGetWorkflowRunResult.mockImplementation(() => {
+      vi.setSystemTime(Date.now() + 5000);
+      return Promise.resolve({ success: false, reason: "timeout" });
     });
 
     await main();
@@ -200,7 +200,7 @@ describe("main", () => {
     expect(coreSetFailedMock).not.toHaveBeenCalled();
     expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
     expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
-      "Timeout exceeded while attempting to await run conclusion (0ms)",
+      "Timeout exceeded while attempting to await run conclusion (5000ms)",
       testCfg.runId,
     );
 
@@ -243,41 +243,53 @@ describe("main", () => {
     expect(coreInfoLogMock).toHaveBeenCalledOnce();
   });
 
-  it("should fail if the run has a non-success conclusion", async () => {
-    apiFetchWorkflowRunActiveJobUrlRetry.mockResolvedValue({
-      success: true,
-      value: "test-url",
-    });
-    awaitRemoteRunGetWorkflowRunResult.mockResolvedValue({
-      success: true,
-      value: {
-        status: WorkflowRunStatus.Completed,
-        conclusion: WorkflowRunConclusion.Failure,
-      },
-    });
+  it.each([
+    WorkflowRunConclusion.ActionRequired,
+    WorkflowRunConclusion.Cancelled,
+    WorkflowRunConclusion.Failure,
+    WorkflowRunConclusion.Neutral,
+    WorkflowRunConclusion.Skipped,
+    WorkflowRunConclusion.TimedOut,
+    WorkflowRunConclusion.Stale,
+    WorkflowRunConclusion.StartupFailure,
+  ])(
+    "should fail if the run has a non-success conclusion (%s)",
+    async (conclusion) => {
+      apiFetchWorkflowRunActiveJobUrlRetry.mockResolvedValue({
+        success: true,
+        value: "test-url",
+      });
+      awaitRemoteRunGetWorkflowRunResult.mockResolvedValue({
+        success: true,
+        value: {
+          status: WorkflowRunStatus.Completed,
+          conclusion,
+        },
+      });
 
-    await main();
+      await main();
 
-    // Behaviour
-    expect(awaitRemoteRunGetWorkflowRunResult).toHaveBeenCalledOnce();
+      // Behaviour
+      expect(awaitRemoteRunGetWorkflowRunResult).toHaveBeenCalledOnce();
 
-    // Result
-    expect(coreSetFailedMock).not.toHaveBeenCalled();
-    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
-    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
-      "Run has concluded with failure",
-      testCfg.runId,
-    );
+      // Result
+      expect(coreSetFailedMock).not.toHaveBeenCalled();
+      expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
+      expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
+        `Run has concluded with ${conclusion}`,
+        testCfg.runId,
+      );
 
-    // Logging - only the "Awaiting completion" info, no "Run Completed"
-    assertOnlyCalled(coreInfoLogMock);
-    expect(coreInfoLogMock).toHaveBeenCalledOnce();
-    expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
-      "Awaiting completion of Workflow Run 123456...
-        ID: 123456
-        URL: test-url"
-    `);
-  });
+      // Logging - only the "Awaiting completion" info, no "Run Completed"
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
+        "Awaiting completion of Workflow Run 123456...
+          ID: 123456
+          URL: test-url"
+      `);
+    },
+  );
 
   it("should fail for an unhandled error", async () => {
     const testError = new Error("test error");
