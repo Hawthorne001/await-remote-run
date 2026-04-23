@@ -91,9 +91,7 @@ describe("Action", () => {
       mockEnvConfig.run_timeout_seconds = "invalid value";
 
       // Behaviour
-      expect(() => getConfig()).toThrow(
-        "Unable to parse value: invalid value",
-      );
+      expect(() => getConfig()).toThrow("Unable to parse value: invalid value");
 
       // Logging
       assertNoneCalled();
