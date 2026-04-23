@@ -209,7 +209,7 @@ describe("await-remote-run", () => {
         expect.fail();
       }
       expect(result.success).toStrictEqual(false);
-      expect(result.reason).toStrictEqual("timeout");
+      expect(result.reason).toStrictEqual("timed_out");
 
       // Logging
       assertOnlyCalled(coreErrorLogMock);

@@ -56,7 +56,7 @@ export function getWorkflowRunConclusionResult(
       return { success: false, reason: "inconclusive", value: conclusion };
     case WorkflowRunConclusion.TimedOut:
       core.error("Run has timed out");
-      return { success: false, reason: "timeout", value: conclusion };
+      return { success: false, reason: "timed_out", value: conclusion };
     default:
       core.error(
         `Run has failed with unsupported conclusion: ${String(conclusion)}`,
@@ -147,7 +147,7 @@ export async function getWorkflowRunResult({
           };
         }
 
-        if (conclusionResult.reason === "timeout") {
+        if (conclusionResult.reason === "timed_out") {
           return {
             success: false,
             reason: "timeout",

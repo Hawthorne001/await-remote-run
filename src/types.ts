@@ -57,10 +57,17 @@ interface ResultStatusPending {
 export type WorkflowRunConclusionResult =
   | ResultSuccess<WorkflowRunConclusion>
   | ResultConclusionInconclusive
+  | ResultConclusionTimedOut
   | ResultUnsupported;
 
 interface ResultConclusionInconclusive {
   success: false;
-  reason: "inconclusive" | "timeout";
+  reason: "inconclusive";
+  value: WorkflowRunConclusion;
+}
+
+interface ResultConclusionTimedOut {
+  success: false;
+  reason: "timed_out";
   value: WorkflowRunConclusion;
 }
