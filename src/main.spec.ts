@@ -13,6 +13,7 @@ import {
 import * as action from "./action.ts";
 import * as api from "./api.ts";
 import * as awaitRemoteRun from "./await-remote-run.ts";
+import * as constants from "./constants.ts";
 import { main } from "./main.ts";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
 import { WorkflowRunConclusion, WorkflowRunStatus } from "./types.ts";
@@ -118,7 +119,7 @@ describe("main", () => {
     expect(apiFetchWorkflowRunActiveJobUrlRetry).toHaveBeenCalledOnce();
     expect(apiFetchWorkflowRunActiveJobUrlRetry).toHaveBeenCalledWith(
       testCfg.runId,
-      1000,
+      constants.WORKFLOW_RUN_ACTIVE_JOB_TIMEOUT_MS,
     );
 
     // Run Result
@@ -171,6 +172,30 @@ describe("main", () => {
     expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
     expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
       "Timeout exceeded while attempting to find the active job run URL (500ms)",
+      testCfg.runId,
+    );
+
+    // Logging - no info logs since we return before logging the URL
+    assertNoneCalled();
+  });
+
+  it("should fail if the active job URL fetch returns unsupported", async () => {
+    apiFetchWorkflowRunActiveJobUrlRetry.mockResolvedValue({
+      success: false,
+      reason: "unsupported",
+      value: "weird-value",
+    });
+
+    await main();
+
+    // Run result should not be fetched once the URL fetch fails
+    expect(awaitRemoteRunGetWorkflowRunResult).not.toHaveBeenCalled();
+
+    // Result
+    expect(coreSetFailedMock).not.toHaveBeenCalled();
+    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
+    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
+      "An unsupported value was reached: weird-value",
       testCfg.runId,
     );
 
