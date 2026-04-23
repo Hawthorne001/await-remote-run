@@ -46,7 +46,7 @@ exports[`await-remote-run > getWorkflowRunResult > returns a failure on an unsup
 exports[`await-remote-run > getWorkflowRunResult > returns a failure on timeout conclusion 1`] = `
 [
   [
-    "Run has timeout out",
+    "Run has timed out",
   ],
 ]
 `;

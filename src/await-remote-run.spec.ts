@@ -172,7 +172,7 @@ describe("await-remote-run", () => {
       assertOnlyCalled(coreErrorLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.lastCall?.[0]).toMatchInlineSnapshot(
-        `"Run has timeout out"`,
+        `"Run has timed out"`,
       );
     });
 
