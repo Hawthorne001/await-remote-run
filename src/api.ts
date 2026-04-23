@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
@@ -111,6 +109,7 @@ async function fetchWorkflowRunJobs(
     filter: "latest",
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (response.status !== 200) {
     throw new Error(
       `Failed to fetch Jobs for Workflow Run, expected 200 but received ${response.status}`,
