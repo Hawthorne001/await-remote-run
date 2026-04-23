@@ -57,7 +57,7 @@ export function getConfig(): ActionConfig {
 function getRunIdFromValue(value: string): number {
   const id = getNumberFromValue(value);
   if (id === undefined) {
-    throw new Error("Run ID must be provided.");
+    throw new TypeError("Run ID must be provided.");
   }
   return id;
 }
