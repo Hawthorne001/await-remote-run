@@ -67,15 +67,10 @@ function getNumberFromValue(value: string): number | undefined {
     return undefined;
   }
 
-  try {
-    const num = parseInt(value);
-
-    if (isNaN(num)) {
-      throw new Error("Parsed value is NaN");
-    }
-
-    return num;
-  } catch {
-    throw new Error(`Unable to parse value: ${value}`);
+  const num = Number.parseInt(value);
+  if (Number.isNaN(num)) {
+    throw new TypeError(`Unable to parse value: ${value}`);
   }
+
+  return num;
 }
