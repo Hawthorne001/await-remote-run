@@ -93,27 +93,70 @@ describe("await-remote-run", () => {
     });
 
     it.each([
-      WorkflowRunStatus.Pending,
       WorkflowRunStatus.Requested,
+      WorkflowRunStatus.Pending,
       WorkflowRunStatus.Waiting,
-    ])("should return unsupported on %s status", (status) => {
+    ])("should return pending on %s status", (status) => {
       // Behaviour
       const result = getWorkflowRunStatusResult(status, 0);
       if (result.success) {
         expect.fail();
       }
       expect(result.success).toStrictEqual(false);
+      expect(result.reason).toStrictEqual("pending");
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.lastCall?.[0]).toStrictEqual(
+        `Run is ${status}, attempt 0...`,
+      );
+    });
+
+    it("should return unsupported on a null status", () => {
+      // Behaviour
+      const result = getWorkflowRunStatusResult(null, 0);
+      if (result.success) {
+        expect.fail();
+      }
+      expect(result.success).toStrictEqual(false);
       expect(result.reason).toStrictEqual("unsupported");
+      expect(result.value).toStrictEqual("null");
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreInfoLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
-      expect(coreErrorLogMock.mock.lastCall?.[0]).toStrictEqual(
-        `Run status is unsupported: ${status}`,
+      expect(coreErrorLogMock.mock.lastCall?.[0]).toMatchInlineSnapshot(
+        `"Run status is unsupported: null"`,
       );
       expect(coreInfoLogMock).toHaveBeenCalledOnce();
-      expect(coreInfoLogMock.mock.lastCall?.[0]).toStrictEqual(
-        "Please open an issue with this status value",
+      expect(coreInfoLogMock.mock.lastCall?.[0]).toMatchInlineSnapshot(
+        `"Please open an issue with this status value"`,
+      );
+    });
+
+    it("should return unsupported on an unknown status", () => {
+      // Behaviour
+      const result = getWorkflowRunStatusResult(
+        "random_status" as WorkflowRunStatus,
+        0,
+      );
+      if (result.success) {
+        expect.fail();
+      }
+      expect(result.success).toStrictEqual(false);
+      expect(result.reason).toStrictEqual("unsupported");
+      expect(result.value).toStrictEqual("random_status");
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreInfoLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
+      expect(coreErrorLogMock.mock.lastCall?.[0]).toMatchInlineSnapshot(
+        `"Run status is unsupported: random_status"`,
+      );
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.lastCall?.[0]).toMatchInlineSnapshot(
+        `"Please open an issue with this status value"`,
       );
     });
   });

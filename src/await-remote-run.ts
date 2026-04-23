@@ -18,21 +18,25 @@ export function getWorkflowRunStatusResult(
   status: WorkflowRunStatus | null,
   attemptNo: number,
 ): WorkflowRunStatusResult {
-  if (status === WorkflowRunStatus.Completed) {
-    return { success: true, value: status };
+  switch (status) {
+    case WorkflowRunStatus.Completed:
+      return { success: true, value: status };
+    case WorkflowRunStatus.Queued:
+      core.debug(`Run is queued to begin, attempt ${attemptNo}...`);
+      return { success: false, reason: "pending", value: status };
+    case WorkflowRunStatus.InProgress:
+      core.debug(`Run is in progress, attempt ${attemptNo}...`);
+      return { success: false, reason: "pending", value: status };
+    case WorkflowRunStatus.Requested:
+    case WorkflowRunStatus.Pending:
+    case WorkflowRunStatus.Waiting:
+      core.debug(`Run is ${status}, attempt ${attemptNo}...`);
+      return { success: false, reason: "pending", value: status };
+    default:
+      core.error(`Run status is unsupported: ${String(status)}`);
+      core.info("Please open an issue with this status value");
+      return { success: false, reason: "unsupported", value: String(status) };
   }
-
-  if (status === WorkflowRunStatus.Queued) {
-    core.debug(`Run is queued to begin, attempt ${attemptNo}...`);
-    return { success: false, reason: "pending", value: status };
-  } else if (status === WorkflowRunStatus.InProgress) {
-    core.debug(`Run is in progress, attempt ${attemptNo}...`);
-    return { success: false, reason: "pending", value: status };
-  }
-
-  core.error(`Run status is unsupported: ${status}`);
-  core.info("Please open an issue with this status value");
-  return { success: false, reason: "unsupported", value: status ?? "null" };
 }
 
 export function getWorkflowRunConclusionResult(
@@ -120,9 +124,7 @@ export async function getWorkflowRunResult({
       400,
       "fetchWorkflowRunState",
     );
-    if (!fetchWorkflowRunStateResult.success) {
-      core.debug(`Failed to fetch run state, attempt ${attemptNo}...`);
-    } else {
+    if (fetchWorkflowRunStateResult.success) {
       const { status, conclusion } = fetchWorkflowRunStateResult.value;
       const statusResult = getWorkflowRunStatusResult(status, attemptNo);
       if (statusResult.success) {
@@ -160,6 +162,8 @@ export async function getWorkflowRunResult({
       if (statusResult.reason === "unsupported") {
         return statusResult;
       }
+    } else {
+      core.debug(`Failed to fetch run state, attempt ${attemptNo}...`);
     }
 
     await sleep(pollIntervalMs);
