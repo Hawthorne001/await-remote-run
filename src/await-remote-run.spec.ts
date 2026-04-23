@@ -29,6 +29,7 @@ describe("await-remote-run", () => {
     coreErrorLogMock,
     coreInfoLogMock,
     coreDebugLogMock,
+    coreWarningLogMock,
     assertOnlyCalled,
     assertNoneCalled,
   } = mockLoggingFunctions();
@@ -327,6 +328,32 @@ describe("await-remote-run", () => {
       );
       expect(coreErrorLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
       expect(coreErrorLogMock.mock.calls[2]?.[0]).toMatchSnapshot();
+    });
+
+    it("should swallow errors from fetching failed jobs", async () => {
+      const fetchError = new Error("boom");
+      apiFetchWorkflowRunFailedJobsMock.mockRejectedValue(fetchError);
+
+      const testMsg = "Original Failure";
+      await expect(handleActionFail(testMsg, 42)).resolves.toBeUndefined();
+
+      // Behaviour
+      // We want to ensure that the original `setFailed` reason
+      // is preserved. Teardown errors shouldn't leak to the caller.
+      expect(setFailedSpy).toHaveBeenCalledOnce();
+      expect(setFailedSpy).toHaveBeenCalledWith(testMsg);
+      expect(setOutputSpy).not.toHaveBeenCalled();
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreWarningLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
+      expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"Failed: Original Failure"`,
+      );
+      expect(coreWarningLogMock).toHaveBeenCalledOnce();
+      expect(coreWarningLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"Unable to log failed job details for Workflow Run 42: boom"`,
+      );
     });
 
     it("should only log steps that did not succeed", async () => {

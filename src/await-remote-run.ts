@@ -77,26 +77,35 @@ export async function handleActionFail(
   core.error(`Failed: ${failureMsg}`);
   core.setFailed(failureMsg);
 
-  const failedJobs = await fetchWorkflowRunFailedJobs(runId);
-  for (const failedJob of failedJobs) {
-    const failedSteps = failedJob.steps
-      .filter((step) => step.conclusion !== "success")
-      .map((step) => {
-        return (
-          `    ${step.number}: ${step.name}\n` +
-          `      Status: ${step.status}\n` +
-          `      Conclusion: ${step.conclusion}`
-        );
-      })
-      .join("\n");
-    core.error(
-      `Job ${failedJob.name}:\n` +
-        `  ID: ${failedJob.id}\n` +
-        `  Status: ${failedJob.status}\n` +
-        `  Conclusion: ${failedJob.conclusion}\n` +
-        `  URL: ${failedJob.url}\n` +
-        `  Steps (non-success):\n` +
-        (failedSteps || "    (none)"),
+  // Handle and log errors here so teardown errors don't leak to the caller
+  // catch and end up overriding the `setFailed` with the wrong error.
+  try {
+    const failedJobs = await fetchWorkflowRunFailedJobs(runId);
+    for (const failedJob of failedJobs) {
+      const failedSteps = failedJob.steps
+        .filter((step) => step.conclusion !== "success")
+        .map((step) => {
+          return (
+            `    ${step.number}: ${step.name}\n` +
+            `      Status: ${step.status}\n` +
+            `      Conclusion: ${step.conclusion}`
+          );
+        })
+        .join("\n");
+      core.error(
+        `Job ${failedJob.name}:\n` +
+          `  ID: ${failedJob.id}\n` +
+          `  Status: ${failedJob.status}\n` +
+          `  Conclusion: ${failedJob.conclusion}\n` +
+          `  URL: ${failedJob.url}\n` +
+          `  Steps (non-success):\n` +
+          (failedSteps || "    (none)"),
+      );
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    core.warning(
+      `Unable to log failed job details for Workflow Run ${runId}: ${detail}`,
     );
   }
 }
