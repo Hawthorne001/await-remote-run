@@ -50,18 +50,22 @@ export function getWorkflowRunConclusionResult(
     case WorkflowRunConclusion.Failure:
     case WorkflowRunConclusion.Neutral:
     case WorkflowRunConclusion.Skipped:
+    case WorkflowRunConclusion.Stale:
+    case WorkflowRunConclusion.StartupFailure:
       core.error(`Run has failed with conclusion: ${conclusion}`);
       return { success: false, reason: "inconclusive", value: conclusion };
     case WorkflowRunConclusion.TimedOut:
       core.error("Run has timed out");
       return { success: false, reason: "timeout", value: conclusion };
     default:
-      core.error(`Run has failed with unsupported conclusion: ${conclusion}`);
+      core.error(
+        `Run has failed with unsupported conclusion: ${String(conclusion)}`,
+      );
       core.info("Please open an issue with this conclusion value");
       return {
         success: false,
         reason: "unsupported",
-        value: conclusion ?? "null",
+        value: String(conclusion),
       };
   }
 }

@@ -225,6 +225,8 @@ describe("await-remote-run", () => {
       WorkflowRunConclusion.Failure,
       WorkflowRunConclusion.Neutral,
       WorkflowRunConclusion.Skipped,
+      WorkflowRunConclusion.Stale,
+      WorkflowRunConclusion.StartupFailure,
     ])("should return non-success on %s conclusion", (conclusion) => {
       // Behaviour
       const result = getWorkflowRunConclusionResult(conclusion);
