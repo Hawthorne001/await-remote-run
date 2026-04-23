@@ -20,7 +20,10 @@ export async function main(): Promise<void> {
     );
     if (!activeJobUrlResult.success) {
       const elapsedTime = Date.now() - startTime;
-      const failureMsg = `Timeout exceeded while attempting to find the active job run URL (${elapsedTime}ms)`;
+      const failureMsg =
+        activeJobUrlResult.reason === "timeout"
+          ? `Timeout exceeded while attempting to find the active job run URL (${elapsedTime}ms)`
+          : `An unsupported value was reached: ${activeJobUrlResult.value}`;
       await handleActionFail(failureMsg, config.runId);
       return;
     }
@@ -69,12 +72,10 @@ export async function main(): Promise<void> {
       core.error(failureMsg);
       core.debug(error.stack ?? "");
     } else {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      const failureMsg = `Failed: An unknown error has occurred: ${error}`;
+      const failureMsg = `Failed: An unknown error has occurred: ${String(error)}`;
       core.setFailed(failureMsg);
       core.error(failureMsg);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      core.debug(error as any);
+      core.debug(String(error));
     }
   }
 }
