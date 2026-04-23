@@ -13,24 +13,22 @@ export async function main(): Promise<void> {
     const config = getConfig();
     api.init(config);
 
-    // Attempt to get the active job URL
+    // Attempt to fetch and use the active job URL for logging.
+    // If this fails, we'll still attempt to await the run, but
+    // cannot log the URL.
     const activeJobUrlResult = await api.fetchWorkflowRunActiveJobUrlRetry(
       config.runId,
       constants.WORKFLOW_RUN_ACTIVE_JOB_TIMEOUT_MS,
     );
     if (!activeJobUrlResult.success) {
-      const elapsedTime = Date.now() - startTime;
-      const failureMsg =
-        activeJobUrlResult.reason === "timeout"
-          ? `Timeout exceeded while attempting to find the active job run URL (${elapsedTime}ms)`
-          : `An unsupported value was reached: ${activeJobUrlResult.value}`;
-      await handleActionFail(failureMsg, config.runId);
-      return;
+      core.warning(
+        `Unable to fetch active job URL (reason: ${activeJobUrlResult.reason}), continuing...`,
+      );
     }
     core.info(
       `Awaiting completion of Workflow Run ${config.runId}...\n` +
         `  ID: ${config.runId}\n` +
-        `  URL: ${activeJobUrlResult.value}`,
+        `  URL: ${activeJobUrlResult.success ? activeJobUrlResult.value : "<unavailable>"}`,
     );
 
     // Await the result

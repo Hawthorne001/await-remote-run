@@ -28,8 +28,8 @@ describe("main", () => {
     coreDebugLogMock,
     coreErrorLogMock,
     coreInfoLogMock,
+    coreWarningLogMock,
     assertOnlyCalled,
-    assertNoneCalled,
   } = mockLoggingFunctions();
   const testCfg: action.ActionConfig = {
     token: "secret",
@@ -151,56 +151,80 @@ describe("main", () => {
     `);
   });
 
-  it("should fail if the active job URL cannot be fetched", async () => {
-    apiFetchWorkflowRunActiveJobUrlRetry.mockImplementation(() => {
-      vi.setSystemTime(Date.now() + 500);
-      return Promise.resolve({ success: false, reason: "timeout" });
+  it("should warn and continue if the active job URL fetch times out", async () => {
+    apiFetchWorkflowRunActiveJobUrlRetry.mockResolvedValue({
+      success: false,
+      reason: "timeout",
+    });
+    awaitRemoteRunGetWorkflowRunResult.mockResolvedValue({
+      success: true,
+      value: {
+        status: WorkflowRunStatus.Completed,
+        conclusion: WorkflowRunConclusion.Success,
+      },
     });
 
     await main();
 
     // Behaviour
-    expect(actionGetConfigMock).toHaveBeenCalledOnce();
-    expect(apiInitMock).toHaveBeenCalledOnce();
     expect(apiFetchWorkflowRunActiveJobUrlRetry).toHaveBeenCalledOnce();
+    // URL fetch is best-effort — polling should still run
+    expect(awaitRemoteRunGetWorkflowRunResult).toHaveBeenCalledOnce();
 
-    // Run result should not be fetched once the URL fetch fails
-    expect(awaitRemoteRunGetWorkflowRunResult).not.toHaveBeenCalled();
-
-    // Result
+    // Result — no action failure from the URL fetch
     expect(coreSetFailedMock).not.toHaveBeenCalled();
-    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
-    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
-      "Timeout exceeded while attempting to find the active job run URL (500ms)",
-      testCfg.runId,
-    );
+    expect(awaitRemoteRunHandleActionFail).not.toHaveBeenCalled();
 
-    // Logging - no info logs since we return before logging the URL
-    assertNoneCalled();
+    // Logging
+    assertOnlyCalled(coreInfoLogMock, coreWarningLogMock);
+    expect(coreWarningLogMock).toHaveBeenCalledOnce();
+    expect(coreWarningLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+      `"Unable to fetch active job URL (reason: timeout), continuing..."`,
+    );
+    expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
+    expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
+      "Awaiting completion of Workflow Run 123456...
+        ID: 123456
+        URL: <unavailable>"
+    `);
   });
 
-  it("should fail if the active job URL fetch returns unsupported", async () => {
+  it("should warn and continue if the active job URL fetch returns unsupported", async () => {
     apiFetchWorkflowRunActiveJobUrlRetry.mockResolvedValue({
       success: false,
       reason: "unsupported",
       value: "weird-value",
     });
+    awaitRemoteRunGetWorkflowRunResult.mockResolvedValue({
+      success: true,
+      value: {
+        status: WorkflowRunStatus.Completed,
+        conclusion: WorkflowRunConclusion.Success,
+      },
+    });
 
     await main();
 
-    // Run result should not be fetched once the URL fetch fails
-    expect(awaitRemoteRunGetWorkflowRunResult).not.toHaveBeenCalled();
+    // Behaviour
+    expect(apiFetchWorkflowRunActiveJobUrlRetry).toHaveBeenCalledOnce();
+    expect(awaitRemoteRunGetWorkflowRunResult).toHaveBeenCalledOnce();
 
     // Result
     expect(coreSetFailedMock).not.toHaveBeenCalled();
-    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledOnce();
-    expect(awaitRemoteRunHandleActionFail).toHaveBeenCalledWith(
-      "An unsupported value was reached: weird-value",
-      testCfg.runId,
-    );
+    expect(awaitRemoteRunHandleActionFail).not.toHaveBeenCalled();
 
-    // Logging - no info logs since we return before logging the URL
-    assertNoneCalled();
+    // Logging
+    assertOnlyCalled(coreInfoLogMock, coreWarningLogMock);
+    expect(coreWarningLogMock).toHaveBeenCalledOnce();
+    expect(coreWarningLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+      `"Unable to fetch active job URL (reason: unsupported), continuing..."`,
+    );
+    expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
+    expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
+      "Awaiting completion of Workflow Run 123456...
+        ID: 123456
+        URL: <unavailable>"
+    `);
   });
 
   it("should fail if awaiting the run result times out", async () => {
