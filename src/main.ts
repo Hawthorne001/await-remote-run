@@ -79,7 +79,3 @@ export async function main(): Promise<void> {
     }
   }
 }
-
-if (!process.env.VITEST) {
-  await main();
-}

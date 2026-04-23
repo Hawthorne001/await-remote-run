@@ -9,7 +9,7 @@ import { analyzeMetafile, build } from "esbuild";
     );
 
     const result = await build({
-      entryPoints: ["./src/main.ts"],
+      entryPoints: ["./src/index.ts"],
       outfile: "dist/index.mjs",
       metafile: true,
       bundle: true,
