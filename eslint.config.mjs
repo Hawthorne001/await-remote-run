@@ -22,13 +22,7 @@ export default tsEslint.config(
     },
   },
   {
-    ignores: [
-      "coverage",
-      "dist",
-      "esbuild.config.mjs",
-      "knip.ts",
-      "vitest.config.ts",
-    ],
+    ignores: ["coverage", "dist", "esbuild.config.mjs", "vitest.config.ts"],
   },
   {
     rules: {
