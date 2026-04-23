@@ -96,7 +96,7 @@ export async function handleActionFail(
         `  Conclusion: ${failedJob.conclusion}\n` +
         `  URL: ${failedJob.url}\n` +
         `  Steps (non-success):\n` +
-        failedSteps,
+        (failedSteps || "    (none)"),
     );
   }
 }

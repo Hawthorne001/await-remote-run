@@ -185,7 +185,7 @@ describe("main", () => {
     expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
       "Awaiting completion of Workflow Run 123456...
         ID: 123456
-        URL: <unavailable>"
+        URL: https://github.com/owner/repository/actions/runs/123456"
     `);
   });
 
@@ -223,7 +223,7 @@ describe("main", () => {
     expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
       "Awaiting completion of Workflow Run 123456...
         ID: 123456
-        URL: <unavailable>"
+        URL: https://github.com/owner/repository/actions/runs/123456"
     `);
   });
 

@@ -25,10 +25,11 @@ export async function main(): Promise<void> {
         `Unable to fetch active job URL (reason: ${activeJobUrlResult.reason}), continuing...`,
       );
     }
+    const runUrl = `https://github.com/${config.owner}/${config.repo}/actions/runs/${config.runId}`;
     core.info(
       `Awaiting completion of Workflow Run ${config.runId}...\n` +
         `  ID: ${config.runId}\n` +
-        `  URL: ${activeJobUrlResult.success ? activeJobUrlResult.value : "<unavailable>"}`,
+        `  URL: ${activeJobUrlResult.success ? activeJobUrlResult.value : runUrl}`,
     );
 
     // Await the result

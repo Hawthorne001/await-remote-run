@@ -113,7 +113,7 @@ exports[`await-remote-run > handleActionFail > should fetch and log failed jobs 
   Conclusion: failure
   URL: url
   Steps (non-success):
-"
+    (none)"
 `;
 
 exports[`await-remote-run > handleActionFail > should only log steps that did not succeed 2`] = `
