@@ -108,6 +108,7 @@ async function fetchWorkflowRunJobs(
     filter: "latest",
   });
 
+  // A non-200 is possible, the types aren't the best
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (response.status !== 200) {
     throw new Error(
