@@ -2,6 +2,7 @@
 
 import jsEslint from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 import * as eslintPluginImportX from "eslint-plugin-import-x";
 import * as tsEslint from "typescript-eslint";
 
@@ -19,6 +20,13 @@ export default tsEslint.config(
         },
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+    settings: {
+      "import-x/resolver-next": [
+        createTypeScriptImportResolver({
+          project: "./tsconfig.json",
+        }),
+      ],
     },
   },
   {
