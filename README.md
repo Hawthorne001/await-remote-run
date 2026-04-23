@@ -27,7 +27,7 @@ steps:
       owner: repository-owner
       workflow: automation-test.yml
   - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
-    uses: Codex-/await-remote-run@v1
+    uses: Codex-/await-remote-run@v2
     with:
       token: ${{ github.token }}
       ref: target_branch # or refs/heads/target_branch
