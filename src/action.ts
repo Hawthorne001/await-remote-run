@@ -57,7 +57,7 @@ export function getConfig(): ActionConfig {
 function getRunIdFromValue(value: string): number {
   const id = getNumberFromValue(value);
   if (id === undefined) {
-    throw new Error("Run ID must be provided.");
+    throw new TypeError("Run ID must be provided.");
   }
   return id;
 }
@@ -67,15 +67,10 @@ function getNumberFromValue(value: string): number | undefined {
     return undefined;
   }
 
-  try {
-    const num = parseInt(value);
-
-    if (isNaN(num)) {
-      throw new Error("Parsed value is NaN");
-    }
-
-    return num;
-  } catch {
-    throw new Error(`Unable to parse value: ${value}`);
+  const num = Number.parseInt(value);
+  if (Number.isNaN(num)) {
+    throw new TypeError(`Unable to parse value: ${value}`);
   }
+
+  return num;
 }

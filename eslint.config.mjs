@@ -1,36 +1,13 @@
 // @ts-check
 
-import { fixupPluginRules } from "@eslint/compat";
-import { FlatCompat } from "@eslint/eslintrc";
 import jsEslint from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import eslintConfigPrettier from "eslint-config-prettier";
-import eslintPluginImportX from "eslint-plugin-import-x";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
+import * as eslintPluginImportX from "eslint-plugin-import-x";
 import * as tsEslint from "typescript-eslint";
 
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-  recommendedConfig: jsEslint.configs.recommended,
-  allConfig: jsEslint.configs.all,
-});
-
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/**
- * @param {string} name the pugin name
- * @param {string} alias the plugin alias
- * @returns {import("eslint").ESLint.Plugin}
- */
-function legacyPlugin(name, alias = name) {
-  const plugin = compat.plugins(name)[0]?.plugins?.[alias];
-
-  if (!plugin) {
-    throw new Error(`Unable to resolve plugin ${name} and/or alias ${alias}`);
-  }
-
-  return fixupPluginRules(plugin);
-}
-/* eslint-enable @typescript-eslint/explicit-function-return-type */
-
-export default tsEslint.config(
+export default defineConfig(
   jsEslint.configs.recommended,
   eslintPluginImportX.flatConfigs.recommended,
   eslintPluginImportX.flatConfigs.typescript,
@@ -45,20 +22,18 @@ export default tsEslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  },
-  {
-    ignores: [
-      "**/coverage",
-      "**/dist",
-      "**/esbuild.config.mjs",
-      "**/vitest.config.ts",
-    ],
-  },
-  {
-    plugins: {
-      github: legacyPlugin("eslint-plugin-github", "github"), // pending https://github.com/github/eslint-plugin-github/issues/513
-      import: legacyPlugin("eslint-plugin-import", "import"), // Needed for above
+    settings: {
+      "import-x/resolver-next": [
+        createTypeScriptImportResolver({
+          project: "./tsconfig.json",
+        }),
+      ],
     },
+  },
+  {
+    ignores: ["coverage", "dist", "esbuild.config.mjs", "vitest.config.ts"],
+  },
+  {
     rules: {
       "@typescript-eslint/await-thenable": "warn",
       "@typescript-eslint/explicit-function-return-type": "warn",
@@ -79,11 +54,7 @@ export default tsEslint.config(
           allowNumber: true,
         },
       ],
-      "github/array-foreach": "error",
-      "github/no-implicit-buggy-globals": "error",
-      "github/no-then": "error",
-      "github/no-dynamic-script-tag": "error",
-      "import/no-extraneous-dependencies": [
+      "import-x/no-extraneous-dependencies": [
         "error",
         {
           devDependencies: true,
@@ -91,7 +62,7 @@ export default tsEslint.config(
           peerDependencies: true,
         },
       ],
-      "import/order": [
+      "import-x/order": [
         "warn",
         { "newlines-between": "always", alphabetize: { order: "asc" } },
       ],

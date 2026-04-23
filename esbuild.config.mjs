@@ -9,19 +9,19 @@ import { analyzeMetafile, build } from "esbuild";
     );
 
     const result = await build({
-      entryPoints: ["./src/main.ts"],
+      entryPoints: ["./src/index.ts"],
       outfile: "dist/index.mjs",
       metafile: true,
       bundle: true,
       format: "esm",
       platform: "node",
-      target: ["node20"],
+      target: ["node24"],
       treeShaking: true,
       // Ensure require is properly defined: https://github.com/evanw/esbuild/issues/1921
       banner: {
         js:
-          "import { createRequire } from 'module';\n" +
-          "const require = createRequire(import.meta.url);",
+          "import { createRequire as __await_remote_run_cr } from 'node:module';\n" +
+          "const require = __await_remote_run_cr(import.meta.url);",
       },
     });
 
