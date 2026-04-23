@@ -93,7 +93,6 @@ interface WorkflowRunJobStep {
   number: number;
 }
 
-type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 type ListJobsForWorkflowRunResponse = Awaited<
   ReturnType<Octokit["rest"]["actions"]["listJobsForWorkflowRun"]>
 >;
