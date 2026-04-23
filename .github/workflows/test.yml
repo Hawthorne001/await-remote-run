@@ -44,11 +44,13 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       checks: write
-      issues: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: jdx/mise-action@v2
       - run: pnpm i
       - uses: codex-/knip-reporter@v2
